@@ -21,20 +21,26 @@ def main():
 @main.command()
 @click.argument("templates", nargs=-1, required=True)
 @click.option("-o", "--output", default=".gitignore", help="Output file path")
-def generate(templates, output):
+@click.option("--force", is_flag=True, help="Replace an existing output file.")
+def generate(templates, output, force):
     """Generate .gitignore file from templates."""
     gen = GitignoreGenerator()
 
     try:
-        gen.generate_to_file(list(templates), output)
-        console.print(f"✅ Generated .gitignore: {output}")
-        console.print(f"   Templates: {', '.join(templates)}")
-    except ValueError as e:
-        console.print(f"❌ Error: {e}", err=True)
+        gen.generate_to_file(list(templates), output, overwrite=force)
+    except FileExistsError as exc:
+        raise click.ClickException(
+            f"Output already exists: {output}. Use --force to replace it."
+        ) from exc
+    except (ValueError, OSError) as exc:
+        raise click.ClickException(str(exc)) from exc
+
+    console.print(f"✅ Generated .gitignore: {output}", markup=False)
+    console.print(f"   Templates: {', '.join(templates)}", markup=False)
 
 
-@main.command()
-def list():
+@main.command(name="list")
+def list_templates():
     """List available templates."""
     gen = GitignoreGenerator()
     templates = gen.list_templates()

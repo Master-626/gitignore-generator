@@ -136,9 +136,20 @@ class GitignoreGenerator:
 
         return "\n\n".join(sections) + "\n"
 
-    def generate_to_file(self, templates: List[str], output_path: str = ".gitignore"):
-        """Generate .gitignore file."""
+    def generate_to_file(
+        self,
+        templates: List[str],
+        output_path: str = ".gitignore",
+        *,
+        overwrite: bool = False,
+    ):
+        """Write a .gitignore, refusing existing paths unless overwrite is true.
+
+        Templates are validated before opening the output. Exclusive creation
+        protects existing files (including symlinks) without a check/write race.
+        """
         content = self.generate(templates)
-        with open(output_path, "w", encoding="utf-8") as f:
+        mode = "w" if overwrite else "x"
+        with open(output_path, mode, encoding="utf-8") as f:
             f.write(content)
         return output_path

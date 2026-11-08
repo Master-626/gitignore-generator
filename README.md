@@ -45,7 +45,16 @@ gitignore generate python macos jetbrains
 
 # Custom output path
 gitignore generate python node -o myproject/.gitignore
+
+# Explicitly replace an existing file (discards its current rules)
+gitignore generate python --force
 ```
+
+Existing output paths are protected by default, including empty files and
+symlinks. Review or back up your custom rules before using `--force`, which
+replaces rather than merges the file. The output directory must already exist.
+With `--force`, a symbolic link is followed and its target is overwritten.
+Invalid templates and file errors produce a nonzero exit status.
 
 ## 🐍 Python API
 
@@ -62,7 +71,15 @@ content = gen.generate(["python", "node", "macos"])
 
 # Generate to file
 gen.generate_to_file(["python"], ".gitignore")
+
+# Only when replacing the existing rules is intentional
+gen.generate_to_file(["python"], ".gitignore", overwrite=True)
 ```
+
+`generate_to_file` raises `FileExistsError` if the output already exists unless
+`overwrite=True` is passed. Unknown templates raise `ValueError` before the
+output file is opened, even when overwrite is enabled.
+Like `--force`, `overwrite=True` follows symbolic links.
 
 ## 🧪 Testing
 
