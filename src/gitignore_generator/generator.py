@@ -2,6 +2,8 @@
 Core .gitignore generation logic.
 """
 
+import errno
+import os
 from typing import Dict, List
 
 
@@ -146,9 +148,12 @@ class GitignoreGenerator:
         """Write a .gitignore, refusing existing paths unless overwrite is true.
 
         Templates are validated before opening the output. Exclusive creation
-        protects existing files (including symlinks) without a check/write race.
+        protects existing files from competing writes. Symlinks are checked
+        separately because Windows may follow dangling links even in x mode.
         """
         content = self.generate(templates)
+        if not overwrite and os.path.islink(output_path):
+            raise FileExistsError(errno.EEXIST, os.strerror(errno.EEXIST), output_path)
         mode = "w" if overwrite else "x"
         with open(output_path, mode, encoding="utf-8") as f:
             f.write(content)

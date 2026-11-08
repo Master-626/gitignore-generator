@@ -138,3 +138,20 @@ def test_explicit_overwrite_can_create_new_file(tmp_path):
     gen = GitignoreGenerator()
     gen.generate_to_file(["python"], output, overwrite=True)
     assert output.read_text() == gen.generate(["python"])
+
+
+def test_existing_symlink_is_rejected_before_open(tmp_path, monkeypatch):
+    import builtins
+
+    from gitignore_generator import generator
+
+    output = tmp_path / ".gitignore"
+    monkeypatch.setattr(generator.os.path, "islink", lambda path: True)
+
+    def unexpected_open(*args, **kwargs):
+        pytest.fail("Existing symlink must not be opened, even in exclusive mode")
+
+    monkeypatch.setattr(builtins, "open", unexpected_open)
+    with pytest.raises(FileExistsError):
+        GitignoreGenerator().generate_to_file(["python"], output)
+    assert not output.exists()
