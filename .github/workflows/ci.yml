@@ -1,16 +1,18 @@
 name: CI
 
-on: [push, pull_request]
+# pull_request covers feature branches. Push is limited to main so a pull
+# request update does not also start the push workflow. Two hosted macOS
+# arm64 jobs for the same commit were cancelled before a runner acquired them.
+on:
+  pull_request:
+  push:
+    branches: [main]
 
 permissions:
   contents: read
 
 jobs:
   tests:
-    # Opening or updating a pull request runs this workflow twice. Hosted
-    # macOS arm64 runners were cancelled when both events requested one, so
-    # only pull_request (and pushes to main) request macOS.
-    if: github.event_name != 'push' || github.ref == 'refs/heads/main' || matrix.os != 'macos-latest'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
