@@ -7,6 +7,10 @@ permissions:
 
 jobs:
   tests:
+    # Opening or updating a pull request runs this workflow twice. Hosted
+    # macOS arm64 runners were cancelled when both events requested one, so
+    # only pull_request (and pushes to main) request macOS.
+    if: github.event_name != 'push' || github.ref == 'refs/heads/main' || matrix.os != 'macos-latest'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
