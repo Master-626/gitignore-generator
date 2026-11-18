@@ -11,11 +11,21 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        # ubuntu-latest is Ubuntu 26.04. setup-python has no 3.8 or 3.9
+        # builds for that image, so those versions stay on ubuntu-22.04.
         include:
           - os: ubuntu-22.04
             python-version: "3.8"
+          - os: ubuntu-22.04
+            python-version: "3.9"
+          - os: ubuntu-latest
+            python-version: "3.10"
+          - os: ubuntu-latest
+            python-version: "3.11"
+          - os: ubuntu-latest
+            python-version: "3.12"
+          - os: ubuntu-latest
+            python-version: "3.13"
           - os: windows-latest
             python-version: "3.12"
           - os: macos-latest

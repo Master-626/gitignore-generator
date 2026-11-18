@@ -131,7 +131,7 @@ ruff check src tests
 pytest
 ```
 
-GitHub Actions runs both ruff and pytest on Python 3.8 through 3.13 (3.8 on Ubuntu 22.04), and also runs the suite on Windows and macOS.
+GitHub Actions runs both ruff and pytest on Python 3.8 through 3.13. Python 3.8 and 3.9 run on Ubuntu 22.04, because current `ubuntu-latest` images have no setup-python builds for those versions. Newer Python versions run on `ubuntu-latest`, and the suite also runs on Windows and macOS.
 
 ## License
 
