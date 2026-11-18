@@ -2,6 +2,8 @@
 CLI interface for gitignore-generator.
 """
 
+import os
+
 import click
 from rich.console import Console
 from rich.table import Table
@@ -22,18 +24,44 @@ def main():
 @click.argument("templates", nargs=-1, required=True)
 @click.option("-o", "--output", default=".gitignore", help="Output file path")
 @click.option("--force", is_flag=True, help="Replace an existing output file.")
-def generate(templates, output, force):
+@click.option(
+    "--append",
+    is_flag=True,
+    help="Add missing templates without discarding existing rules.",
+)
+def generate(templates, output, force, append):
     """Generate .gitignore file from templates."""
-    gen = GitignoreGenerator()
+    if force and append:
+        raise click.UsageError("--append and --force cannot be used together.")
 
+    gen = GitignoreGenerator()
     try:
-        gen.generate_to_file(list(templates), output, overwrite=force)
+        if append:
+            already_there = os.path.isfile(output) and not os.path.islink(output)
+            added = gen.append_to_file(list(templates), output)
+        else:
+            already_there = False
+            added = None
+            gen.generate_to_file(list(templates), output, overwrite=force)
     except FileExistsError as exc:
+        if append and os.path.islink(output):
+            raise click.ClickException(
+                f"Refusing to update symbolic link: {output}."
+            ) from exc
         raise click.ClickException(
             f"Output already exists: {output}. Use --force to replace it."
         ) from exc
     except (ValueError, OSError) as exc:
         raise click.ClickException(str(exc)) from exc
+
+    if append and already_there and not added:
+        console.print(f"No changes: {output}", markup=False)
+        console.print("   Templates already present.", markup=False)
+        return
+    if append and already_there:
+        console.print(f"Updated .gitignore: {output}", markup=False)
+        console.print(f"   Added templates: {', '.join(added)}", markup=False)
+        return
 
     console.print(f"✅ Generated .gitignore: {output}", markup=False)
     console.print(f"   Templates: {', '.join(templates)}", markup=False)
