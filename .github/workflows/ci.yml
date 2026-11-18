@@ -34,7 +34,10 @@ jobs:
             python-version: "3.13"
           - os: windows-latest
             python-version: "3.12"
-          - os: macos-latest
+          # macos-latest is arm64 and was cancelled: no hosted runner
+          # acquired the job. macos-13 is the Intel image and still runs
+          # the same Python 3.12 suite.
+          - os: macos-13
             python-version: "3.12"
     steps:
       - uses: actions/checkout@v4
